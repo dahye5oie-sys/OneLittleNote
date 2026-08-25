@@ -598,6 +598,21 @@ p{margin:0;}
 }
 .round-btn:active{transform:scale(0.9);}
 
+.install-banner{
+  position:absolute;
+  left:14px; right:14px; bottom:14px;
+  z-index:35;
+  padding:13px;
+  border-radius:16px;
+  background:linear-gradient(135deg, var(--pink-deep), var(--lavender-deep));
+  color:#fff;
+  font-weight:700;
+  font-size:14px;
+  box-shadow:var(--shadow-soft);
+  text-align:center;
+}
+.install-banner:active{transform:scale(0.97);}
+
 .back-icon-btn{
   position:absolute;
   top:14px; left:14px;
@@ -790,6 +805,8 @@ p{margin:0;}
   </div>
 
   <div id="lightsOverlay"></div>
+
+  <button class="install-banner" id="installBanner" style="display:none;">📲 앱으로 설치하기</button>
 
   <!-- MODE SELECT SCREEN -->
   <section class="screen active" id="modeSelectScreen">
@@ -1933,6 +1950,39 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
+
+(function(){
+  const banner = document.getElementById('installBanner');
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(isStandalone) return;
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    banner.style.display = 'block';
+  });
+
+  if(isIOS){
+    banner.textContent = '📲 공유 버튼 → "홈 화면에 추가"로 설치하세요';
+    banner.style.display = 'block';
+  }
+
+  banner.addEventListener('click', async ()=>{
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const {outcome} = await deferredPrompt.userChoice;
+      if(outcome === 'accepted') banner.style.display = 'none';
+      deferredPrompt = null;
+    }
+  });
+
+  window.addEventListener('appinstalled', ()=>{
+    banner.style.display = 'none';
+  });
+})();
 </script>
 </body>
 </html>
