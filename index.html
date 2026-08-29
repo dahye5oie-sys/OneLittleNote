@@ -1337,7 +1337,7 @@ p{margin:0;}
     return item && saved.some(s => s.category === item.category && s.text === item.text);
   }
   function syncSaveButton(){
-    const btn = document.getElementById('saveBtn');
+    const btn = saveBtn;
     if(isSaved(currentQuestion)){
       btn.classList.add('saved');
       btn.querySelector('.ico').textContent = '★';
@@ -1467,6 +1467,7 @@ p{margin:0;}
   const resultScreen = document.getElementById('resultScreen');
   const drawBtn = document.getElementById('drawBtn');
   const nextBtn = document.getElementById('nextBtn');
+  const saveBtn = document.getElementById('saveBtn');
   const note = document.getElementById('note');
   const noteCategory = document.getElementById('noteCategory');
   const noteQuestion = document.getElementById('noteQuestion');
@@ -1488,9 +1489,9 @@ p{margin:0;}
     animating = true;
     drawBtn.disabled = true;
     nextBtn.disabled = true;
-    document.getElementById('saveBtn').classList.remove('saved');
-    document.getElementById('saveBtn').querySelector('.ico').textContent = '☆';
-    document.getElementById('saveBtn').disabled = true;
+    saveBtn.classList.remove('saved');
+    saveBtn.querySelector('.ico').textContent = '☆';
+    saveBtn.disabled = true;
     document.getElementById('shareBtn').disabled = true;
 
     const item = drawNext(selectedCategory);
@@ -1531,7 +1532,7 @@ p{margin:0;}
       renderQuestionText(noteQuestion, item.text);
       sfx.reveal();
       currentQuestion = item;
-      document.getElementById('saveBtn').disabled = false;
+      saveBtn.disabled = false;
       document.getElementById('shareBtn').disabled = false;
       syncSaveButton();
     }, 1950);
@@ -1569,7 +1570,7 @@ p{margin:0;}
   document.getElementById('backBtn').addEventListener('click', ()=> history.back());
 
   /* ---------------- Save / Copy ---------------- */
-  document.getElementById('saveBtn').addEventListener('click', ()=>{
+  saveBtn.addEventListener('click', ()=>{
     if(!currentQuestion) return;
     if(isSaved(currentQuestion)){
       saved = saved.filter(s => !(s.category === currentQuestion.category && s.text === currentQuestion.text));
