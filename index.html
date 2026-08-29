@@ -798,7 +798,7 @@ p{margin:0;}
 <div id="app">
 
   <div class="top-controls">
-    <button class="round-btn" id="soundToggle" aria-label="사운드 켜기/끄기">🔊</button>
+    <button class="round-btn" id="soundToggle" aria-label="사운드 켜기/끄기"><span class="ico"></span></button>
     <button class="mode-switch adult-switch" id="adultToggle" role="switch" aria-checked="false" aria-label="19금 모드">
       <span class="switch-track"><span class="switch-thumb">🔞</span></span>
     </button>
@@ -1228,8 +1228,10 @@ p{margin:0;}
     switchOn: () => { tone(500,0.1,'sine',0,0.13); tone(760,0.14,'sine',0.08,0.13); }
   };
 
+  const SVG_VOLUME_ON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+  const SVG_VOLUME_OFF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
   function updateSoundIcon(){
-    document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
+    document.getElementById('soundToggle').querySelector('.ico').innerHTML = soundOn ? SVG_VOLUME_ON : SVG_VOLUME_OFF;
   }
   document.getElementById('soundToggle').addEventListener('click', ()=>{
     soundOn = !soundOn;
@@ -1559,11 +1561,12 @@ p{margin:0;}
   }
 
   drawBtn.addEventListener('click', ()=>{
+    history.pushState({level:2}, '');
     goToResult();
     runDraw(resultCapsule, true);
   });
   nextBtn.addEventListener('click', ()=> runDraw(resultCapsule, false));
-  document.getElementById('backBtn').addEventListener('click', goToHome);
+  document.getElementById('backBtn').addEventListener('click', ()=> history.back());
 
   /* ---------------- Save / Copy ---------------- */
   document.getElementById('saveBtn').addEventListener('click', ()=>{
@@ -1836,6 +1839,13 @@ p{margin:0;}
     toggleEl.setAttribute('aria-checked','false');
   }
 
+  function syncLevel(level){
+    const cur = (history.state && typeof history.state.level === 'number') ? history.state.level : 0;
+    if(level > cur) history.pushState({level}, '');
+    else if(level < cur) history.replaceState({level}, '');
+    else history.replaceState({level}, '');
+  }
+
   function showScreen(el){
     [modeSelectScreen, homeScreen, resultScreen].forEach(s=>s.classList.remove('active'));
     el.classList.add('active');
@@ -1846,6 +1856,7 @@ p{margin:0;}
 
   function enterAdultMode(){
     runModeTransition(()=>{
+      syncLevel(1);
       if(familyMode){ familyMode = false; appEl.classList.remove('family-mode'); }
       adultMode = true;
       selectedCategory = 'adult';
@@ -1861,6 +1872,7 @@ p{margin:0;}
 
   function exitAdultMode(){
     runModeTransition(()=>{
+      syncLevel(1);
       adultMode = false;
       appEl.classList.remove('dark-mode');
       resetSwitch(adultToggle);
@@ -1874,6 +1886,7 @@ p{margin:0;}
 
   function pickCouple(){
     runModeTransition(()=>{
+      syncLevel(1);
       adultMode = false; familyMode = false;
       appEl.classList.remove('dark-mode','family-mode');
       appEl.classList.add('couple-mode');
@@ -1888,6 +1901,7 @@ p{margin:0;}
 
   function pickFamily(){
     runModeTransition(()=>{
+      syncLevel(1);
       adultMode = false; appEl.classList.remove('dark-mode'); resetSwitch(adultToggle);
       appEl.classList.remove('couple-mode');
       familyMode = true;
@@ -1909,6 +1923,7 @@ p{margin:0;}
       }, 'warm');
     } else if(adultMode){
       runModeTransition(()=>{
+        syncLevel(1);
         adultMode = false;
         appEl.classList.remove('dark-mode');
         resetSwitch(adultToggle);
@@ -1928,7 +1943,7 @@ p{margin:0;}
 
   document.getElementById('pickCouple').addEventListener('click', pickCouple);
   document.getElementById('pickFamily').addEventListener('click', pickFamily);
-  document.getElementById('backToModeSelect').addEventListener('click', backToModeSelect);
+  document.getElementById('backToModeSelect').addEventListener('click', ()=> history.back());
 
   adultToggle.addEventListener('click', ()=>{
     if(adultMode){
@@ -1941,6 +1956,17 @@ p{margin:0;}
   document.getElementById('gateConfirm').addEventListener('click', ()=>{
     gateModal.classList.remove('open');
     enterAdultMode();
+  });
+
+  history.replaceState({level:0}, '');
+  window.addEventListener('popstate', (e)=>{
+    const level = (e.state && typeof e.state.level === 'number') ? e.state.level : 0;
+    if(level <= 0){
+      if(resultScreen.classList.contains('active')) goToHome();
+      backToModeSelect();
+    } else if(level === 1){
+      if(resultScreen.classList.contains('active')) goToHome();
+    }
   });
 
 })();
