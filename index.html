@@ -1957,29 +1957,13 @@ if('serviceWorker' in navigator){
   if(isStandalone) return;
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  let deferredPrompt = null;
-
-  window.addEventListener('beforeinstallprompt', (e)=>{
-    e.preventDefault();
-    deferredPrompt = e;
-    banner.style.display = 'block';
-  });
 
   if(isIOS){
     banner.textContent = '📲 공유 버튼 → "홈 화면에 추가"로 설치하세요';
     banner.style.display = 'block';
   }
-
-  banner.addEventListener('click', async ()=>{
-    if(deferredPrompt){
-      deferredPrompt.prompt();
-      const {outcome} = await deferredPrompt.userChoice;
-      if(outcome === 'accepted') banner.style.display = 'none';
-      deferredPrompt = null;
-    }
-  });
-
-  window.addEventListener('appinstalled', ()=>{
+  // Android/Chrome: no preventDefault here, so the browser's own native
+  // install banner ("설치하기") shows automatically — no custom UI needed.
     banner.style.display = 'none';
   });
 })();
